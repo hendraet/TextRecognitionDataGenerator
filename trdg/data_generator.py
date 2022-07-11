@@ -250,20 +250,20 @@ class FakeTextDataGenerator(object):
         if space_width == 0:
             text = text.replace(" ", "")
         if name_format == 0:
-            name = "{}_{}".format(text, str(index))
+            name = f"{text}_{index}"
         elif name_format == 1:
-            name = "{}_{}".format(str(index), text)
+            name = f"{index}_{text}"
         elif name_format == 2:
             name = str(index)
         else:
-            print("{} is not a valid name format. Using default.".format(name_format))
-            name = "{}_{}".format(text, str(index))
+            print(f"{name_format} is not a valid name format. Using default.")
+            name = f"{text}_{index}"
 
         name = make_filename_valid(name, allow_unicode=True)
-        image_name = "{}.{}".format(name, extension)
-        mask_name = "{}_mask.png".format(name)
-        box_name = "{}_boxes.txt".format(name)
-        tess_box_name = "{}.box".format(name)
+        image_name = f"{name}.{extension}"
+        mask_name = f"{name}_mask.png"
+        box_name = f"{name}_boxes.txt"
+        tess_box_name = f"{name}.box"
 
         # Save the image
         if out_dir is not None:

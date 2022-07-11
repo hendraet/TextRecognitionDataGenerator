@@ -433,7 +433,7 @@ def main():
         p.imap_unordered(
             FakeTextDataGenerator.generate_from_tuple,
             zip(
-                [i for i in range(0, string_count)],
+                [f"{{i:0{len(str(string_count))}d}}".format(i=i) for i in range(0, string_count)],
                 strings,
                 [fonts[rnd.randrange(0, len(fonts))] for _ in range(0, string_count)],
                 [args.output_dir] * string_count,
