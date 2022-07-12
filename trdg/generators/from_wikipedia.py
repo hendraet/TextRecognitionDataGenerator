@@ -1,9 +1,9 @@
+import functools
 import os
 
 from .from_strings import GeneratorFromStrings
-from ..data_generator import FakeTextDataGenerator
 from ..string_generator import create_strings_from_wikipedia
-from ..utils import load_dict, load_fonts
+from ..utils import load_fonts
 
 
 class GeneratorFromWikipedia:
@@ -41,15 +41,27 @@ class GeneratorFromWikipedia:
             stroke_fill="#282828",
             image_mode="RGB",
             output_bboxes=0,
+            length=-1,
+            variance=0,
+            font_dir=""
     ):
         self.generated_count = 0
         self.count = count
         self.minimum_length = minimum_length
         self.language = language
+        self.num_strings = min(count, 1000)
+        self.string_func = functools.partial(
+            create_strings_from_wikipedia,
+            length=length,
+            count=self.num_strings,
+            lang=self.language,
+            variance=variance,
+            min_length=self.minimum_length
+        )
         self.generator = GeneratorFromStrings(
-            create_strings_from_wikipedia(self.minimum_length, 1000, self.language),
+            self.string_func(),
             count,
-            fonts if len(fonts) else load_fonts(language),
+            fonts if len(fonts) else load_fonts(font_dir if len(font_dir) > 0 else language),
             language,
             size,
             skewing_angle,
@@ -87,8 +99,6 @@ class GeneratorFromWikipedia:
         return self.next()
 
     def next(self):
-        if self.generator.generated_count >= 999:
-            self.generator.strings = create_strings_from_wikipedia(
-                self.minimum_length, 1000, self.language
-            )
+        if self.generator.generated_count >= self.num_strings:
+            self.generator.strings = self.string_func()
         return self.generator.next()

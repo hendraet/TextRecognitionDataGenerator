@@ -339,6 +339,20 @@ def parse_arguments():
         help="Define the image mode to be used. RGB is default, L means 8-bit grayscale images, 1 means 1-bit binary images stored with one pixel per byte, etc.",
         default="RGB",
     )
+    parser.add_argument(
+        "-var",
+        "--variance",
+        type=int,
+        help="How much the number of words in a sentence may vary",
+        default=0,
+    )
+    parser.add_argument(
+        "-ml",
+        "--min_length",
+        type=int,
+        help="How long each sentence should be at minimum",
+        default=-1,
+    )
     return parser.parse_args()
 
 
@@ -387,7 +401,7 @@ def main():
     strings = []
 
     if args.use_wikipedia:
-        strings = create_strings_from_wikipedia(args.length, args.count, args.language)
+        strings = create_strings_from_wikipedia(args.length, args.count, args.language, args.variance, args.min_length)
     elif args.input_file != "":
         strings = create_strings_from_file(args.input_file, args.count)
     elif args.random_sequences:
@@ -476,11 +490,12 @@ def main():
             os.path.join(args.output_dir, "labels.txt"), "w", encoding="utf8"
         ) as f:
             for i in range(string_count):
-                file_name = str(i) + "." + args.extension
+                id = f"{{i:0{len(str(string_count))}d}}".format(i=i)
+                file_name = f"{id}.{args.extension}"
                 label = strings[i]
                 if args.space_width == 0:
                     label = label.replace(" ", "")
-                f.write("{} {}\n".format(file_name, label))
+                f.write(f"{file_name} {label}\n")
 
 
 if __name__ == "__main__":

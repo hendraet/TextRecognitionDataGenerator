@@ -1,7 +1,9 @@
+import random
 import random as rnd
 import string
 
 import wikipedia
+from tqdm import tqdm
 
 
 def create_strings_from_file(filename, count):
@@ -49,18 +51,31 @@ def get_random_page_content() -> str:
     return page_content
 
 
-def create_strings_from_wikipedia(minimum_length, count, lang):
+def create_strings_from_wikipedia(length, count, lang, variance=0, min_length=-1):
     """
         Create all string by randomly picking Wikipedia articles and taking sentences from them.
     """
     wikipedia.set_lang(lang)
     sentences = []
 
-    while len(sentences) < count:
-        page_content = get_random_page_content()
-        processed_content = page_content.replace("\n", " ").split(". ")
-        sentence_candidates = [s.strip() for s in processed_content if len(s.split()) > minimum_length]
-        sentences.extend(sentence_candidates)
+    with tqdm(total=count, desc='Generating sentences') as pbar:
+        while len(sentences) < count:
+            page_content = get_random_page_content()
+            processed_content = page_content.replace("\n", " ").split(". ")
+            sentence_candidates = [s.strip() for s in processed_content if len(s.split()) > length]
+
+            for sentence_candidate in sentence_candidates:
+                words = sentence_candidate.split()
+                i = 0
+                while i < len(words):
+                    var = random.randint(-variance, variance)
+                    chunk = words[i:i + length + var]
+                    if 0 < min_length < len(chunk):
+                        sentence = " ".join(chunk)
+                        if sentence.isascii():  # Might filter a bit too much, but this way it's safe
+                            sentences.append(sentence)
+                            pbar.update(1)
+                    i += (length + var)
 
     return sentences[0:count]
 
