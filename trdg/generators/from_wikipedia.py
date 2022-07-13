@@ -49,11 +49,12 @@ class GeneratorFromWikipedia:
         self.count = count
         self.minimum_length = minimum_length
         self.language = language
-        self.num_strings = min(count, 1000)
+        self.batch_size = min(count, 1000)
+        self.steps_until_regeneration = self.batch_size
         self.string_func = functools.partial(
             create_strings_from_wikipedia,
             length=length,
-            count=self.num_strings,
+            count=self.batch_size,
             lang=self.language,
             variance=variance,
             min_length=self.minimum_length
@@ -99,6 +100,7 @@ class GeneratorFromWikipedia:
         return self.next()
 
     def next(self):
-        if self.generator.generated_count >= self.num_strings:
+        if self.generator.generated_count >= self.steps_until_regeneration:
             self.generator.strings = self.string_func()
+            self.steps_until_regeneration += self.batch_size
         return self.generator.next()
