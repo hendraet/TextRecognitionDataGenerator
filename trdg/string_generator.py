@@ -1,6 +1,8 @@
+import logging
 import random
 import random as rnd
 import string
+import time
 
 import wikipedia
 from tqdm import tqdm
@@ -48,6 +50,11 @@ def get_random_page_content() -> str:
         page_content = wikipedia.page(page_title).summary
     except (wikipedia.DisambiguationError, wikipedia.PageError):
         return get_random_page_content()
+    except wikipedia.WikipediaException as e:
+        logging.error(f"{e}\nRetrying in 5 min...")
+        time.sleep(300)
+        return get_random_page_content()
+
     return page_content
 
 
