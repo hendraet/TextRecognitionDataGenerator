@@ -2,21 +2,23 @@ import argparse
 import json
 from pathlib import Path
 
+from tqdm import tqdm
+
 
 def main(args: argparse.Namespace):
     with open(args.csv) as f:
         lines = f.readlines()
 
     samples = []
-    for line in lines:
+    for line in tqdm(lines, desc='Processing label file'):
         path, label = line.strip().split(' ', 1)
         samples.append({'string': label, 'path': path})
 
-    split_factors = [0.7, 0.1, 0.2]
+    split_factors = [0.9, 0.1, 0.0]
     names = ['train', 'valid', 'test']
 
     out_dir = args.csv.parent
-    for i, (name, split_factor) in enumerate(zip(names, split_factors)):
+    for i, (name, split_factor) in tqdm(enumerate(zip(names, split_factors)), desc='Generating splits'):
         start = int(sum(split_factors[:i]) * len(samples))
         end = int(sum(split_factors[:i + 1]) * len(samples))
         with open(out_dir / f'synth_lines_{name}.json', 'w') as out_f:

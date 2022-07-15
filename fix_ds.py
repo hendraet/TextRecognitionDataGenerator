@@ -3,6 +3,8 @@ import logging
 import shutil
 from pathlib import Path
 
+from tqdm import tqdm
+
 
 def move_image(img_path: Path, root_dir: Path, batch_size: int, num_batches: int) -> Path:
     image_id = int(img_path.stem)
@@ -27,7 +29,7 @@ def fix_sub_dir(sub_dir: Path, batch_size: int = 10000):
 
     new_samples = []
     num_batches = len(lines) // batch_size
-    for line in lines:
+    for line in tqdm(lines, desc='Processing samples'):
         img_path, label = line.strip().split(' ', 1)
         img_path = sub_dir / img_path
         if not img_path.exists():
@@ -51,7 +53,7 @@ def main(args: argparse.Namespace):
     assert not label_filename.exists()
 
     all_samples = []
-    for f in args.dataset_dir.iterdir():
+    for f in tqdm(args.dataset_dir.iterdir(), desc='Processing sub-directories'):
         if not f.is_dir() or args.filter not in f.name:
             continue
         sub_dir_samples = fix_sub_dir(f, batch_size=args.bsz)
