@@ -14,7 +14,7 @@ class GeneratorFromStrings:
         self,
         strings,
         count=-1,
-        fonts=[],
+        fonts=(),
         language="en",
         size=32,
         skewing_angle=0,
@@ -22,8 +22,8 @@ class GeneratorFromStrings:
         blur=0,
         random_blur=False,
         background_type=0,
-        distorsion_type=0,
-        distorsion_orientation=0,
+        distortion_type=0,
+        distortion_orientation=0,
         is_handwritten=False,
         width=-1,
         alignment=1,
@@ -64,8 +64,8 @@ class GeneratorFromStrings:
         self.blur = blur
         self.random_blur = random_blur
         self.background_type = background_type
-        self.distorsion_type = distorsion_type
-        self.distorsion_orientation = distorsion_orientation
+        self.distorsion_type = distortion_type
+        self.distorsion_orientation = distortion_orientation
         self.is_handwritten = is_handwritten
         self.width = width
         self.alignment = alignment

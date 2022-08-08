@@ -58,7 +58,7 @@ def get_random_page_content() -> str:
     return page_content
 
 
-def create_strings_from_wikipedia(length, count, lang, variance=0, min_length=-1):
+def create_strings_from_wikipedia(length, count, lang, string_length_variance=0, min_length=-1):
     """
         Create all string by randomly picking Wikipedia articles and taking sentences from them.
     """
@@ -75,7 +75,7 @@ def create_strings_from_wikipedia(length, count, lang, variance=0, min_length=-1
                 words = sentence_candidate.split()
                 i = 0
                 while i < len(words):
-                    var = random.randint(-variance, variance)
+                    var = random.randint(-string_length_variance, string_length_variance)
                     chunk = words[i:i + length + var]
                     if 0 < min_length < len(chunk):
                         sentence = " ".join(chunk)

@@ -1,4 +1,5 @@
 import random as rnd
+from typing import Tuple
 
 from PIL import Image, ImageColor, ImageFont, ImageDraw, ImageFilter
 
@@ -15,6 +16,7 @@ def generate(
     word_split,
     stroke_width=0, 
     stroke_fill="#282828",
+    word_pos_variance=None
 ):
     if orientation == 0:
         return _generate_horizontal_text(
@@ -28,6 +30,7 @@ def generate(
             word_split,
             stroke_width,
             stroke_fill,
+            word_pos_variance
         )
     elif orientation == 1:
         return _generate_vertical_text(
@@ -38,31 +41,49 @@ def generate(
         raise ValueError("Unknown orientation " + str(orientation))
 
 
+def get_padding(word_pos_variance: Tuple[float, float], text_height: int) -> Tuple[int, int]:
+    if word_pos_variance is None:
+        return 0, 0
+
+    top_padding = 0
+    if min(word_pos_variance) < 0.:
+        top_padding = abs(int(min(word_pos_variance) * text_height))
+    bottom_padding = 0
+    if max(word_pos_variance) > 0.:
+        bottom_padding = int(max(word_pos_variance) * text_height)
+    return bottom_padding, top_padding
+
+
 def _generate_horizontal_text(
     text, font, text_color, font_size, space_width, character_spacing, fit, word_split, 
-    stroke_width=0, stroke_fill="#282828"
+    stroke_width=0, stroke_fill="#282828", word_pos_variance=None
 ):
+    if word_pos_variance is not None:
+        word_split = True
+        fit = True
     image_font = ImageFont.truetype(font=font, size=font_size)
 
     space_width = int(image_font.getsize(" ")[0] * space_width)
 
     if word_split:
-        splitted_text = []
+        split_text = []
         for w in text.split(" "):
-            splitted_text.append(w)
-            splitted_text.append(" ")
-        splitted_text.pop()
+            split_text.append(w)
+            split_text.append(" ")
+        split_text.pop()
     else:
-        splitted_text = text
+        split_text = text
 
     piece_widths = [
-        image_font.getsize(p)[0] if p != " " else space_width for p in splitted_text
+        image_font.getsize(p)[0] if p != " " else space_width for p in split_text
     ]
     text_width = sum(piece_widths)
     if not word_split:
         text_width += character_spacing * (len(text) - 1)
 
-    text_height = max([image_font.getsize(p)[1] for p in splitted_text])
+    text_height = max([image_font.getsize(p)[1] for p in split_text])
+    bottom_padding, top_padding = get_padding(word_pos_variance, text_height)
+    text_height += top_padding + bottom_padding
 
     txt_img = Image.new("RGBA", (text_width, text_height), (0, 0, 0, 0))
     txt_mask = Image.new("RGB", (text_width, text_height), (0, 0, 0))
@@ -89,9 +110,14 @@ def _generate_horizontal_text(
         rnd.randint(min(stroke_c1[2], stroke_c2[2]), max(stroke_c1[2], stroke_c2[2])),
     )
 
-    for i, p in enumerate(splitted_text):
+    mu = int(sum(word_pos_variance) / 2 * text_height)
+    sigma = int((max(word_pos_variance) - mu) / 3 * text_height) # over 99% of the values of normal distribution are within 3 standard deviations of the mean
+    for i, p in enumerate(split_text):
+        y_pos_shift = 0
+        if word_pos_variance is not None:
+            y_pos_shift = int(rnd.normalvariate(mu=mu, sigma=sigma))
         txt_img_draw.text(
-            (sum(piece_widths[0:i]) + i * character_spacing * int(not word_split), 0),
+            (sum(piece_widths[0:i]) + i * character_spacing * int(not word_split), top_padding + y_pos_shift),
             p,
             fill=fill,
             font=image_font,
@@ -99,7 +125,7 @@ def _generate_horizontal_text(
             stroke_fill=stroke_fill,
         )
         txt_mask_draw.text(
-            (sum(piece_widths[0:i]) + i * character_spacing * int(not word_split), 0),
+            (sum(piece_widths[0:i]) + i * character_spacing * int(not word_split), top_padding + y_pos_shift),
             p,
             fill=((i + 1) // (255 * 255), (i + 1) // 255, (i + 1) % 255),
             font=image_font,

@@ -1,11 +1,11 @@
 import argparse
 from pathlib import Path
 
+import yaml
 from tqdm import tqdm
 
 from trdg.generators import GeneratorFromWikipedia
-
-import yaml
+from trdg.generators.from_strings_custom import GeneratorFromStringsCustom
 
 
 def main(args: argparse.Namespace):
@@ -15,12 +15,22 @@ def main(args: argparse.Namespace):
     dataset_dir = Path(config.pop('dataset_dir'))
     assert dataset_dir.exists(), f'Dataset directory {dataset_dir} does not exist!'
     label_path = dataset_dir / 'labels.txt'
-    assert not label_path.exists(), f'Label file already exists!'
+    # assert not label_path.exists(), f'Label file already exists!'  TODO: use in production again
     (dataset_dir / 'images').mkdir(exist_ok=True)
 
-    generator = GeneratorFromWikipedia(**config)
+    if args.generator_type == 'wikipedia':
+        count = config['count']
+        generator = GeneratorFromWikipedia(**config)
+    elif args.generator_type == 'strings':
+        with args.string_file.open() as f:
+            strings = tuple(line.strip() for line in f)
+        count = len(strings)
+        generator = GeneratorFromStringsCustom(strings=strings, **config)
+    else:
+        raise ValueError(f'Unknown generator type "{args.generator_type}"')
+
     for i, (image, label) in tqdm(enumerate(generator), desc='Saving samples'):
-        sample_id = f"{{i:0{len(str(config['count']))}d}}".format(i=i)
+        sample_id = f"{{i:0{len(str(count))}d}}".format(i=i)
         filename = f'images/{sample_id}.png'
         image.save(dataset_dir / filename)
         with open(label_path, 'a') as f:
@@ -30,4 +40,10 @@ def main(args: argparse.Namespace):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('dataset_config_path', type=Path, help='Path to yaml that has configuration')
+    parser.add_argument('-gt', '--generator_type', type=str, default='wikipedia', choices=['wikipedia', 'strings'],
+                        help='Type of generator to use.')
+    parser.add_argument('-sf', '--string-file', type=Path,
+                        help='Path to file with strings that should be generated. Can only be used with strings '
+                             'generator_type "strings".')
+
     main(parser.parse_args())

@@ -1,6 +1,10 @@
+import logging
 import os
 import random as rnd
+from typing import Tuple, Optional
 
+import imgaug.augmenters as iaa
+import numpy as np
 from PIL import Image, ImageFilter, ImageStat
 
 from trdg import computer_text_generator, background_generator, distorsion_generator
@@ -54,6 +58,8 @@ class FakeTextDataGenerator(object):
         stroke_fill="#282828",
         image_mode="RGB", 
         output_bboxes=0,
+        shearing_interval: Tuple[int, int] = (0, 0),
+        word_pos_variance: Optional[Tuple[float, float]] = None,
     ):
         image = None
 
@@ -81,6 +87,7 @@ class FakeTextDataGenerator(object):
                 word_split,
                 stroke_width, 
                 stroke_fill,
+                word_pos_variance
             )
         random_angle = rnd.randint(0 - skewing_angle, skewing_angle)
 
@@ -229,9 +236,9 @@ class FakeTextDataGenerator(object):
         ############################################
         # Change image mode (RGB, grayscale, etc.) #
         ############################################
-        
+
         background_img = background_img.convert(image_mode)
-        background_mask = background_mask.convert(image_mode) 
+        background_mask = background_mask.convert(image_mode)
 
         #######################
         # Apply gaussian blur #
@@ -242,7 +249,19 @@ class FakeTextDataGenerator(object):
         )
         final_image = background_img.filter(gaussian_filter)
         final_mask = background_mask.filter(gaussian_filter)
-        
+
+        ##################
+        # Apply Shearing #
+        ##################
+
+        shear = iaa.ShearX(shearing_interval, cval=(255 if background_type == 1 else 0)).to_deterministic()
+        sheared_image = shear(images=np.asarray(final_image))
+        final_image = Image.fromarray(sheared_image)
+        if output_bboxes > 0 or output_mask == 1:
+            logging.warning("Output mask could be padded with wron value during shear")
+        sheared_mask = shear(images=np.asarray(final_mask))
+        final_mask = Image.fromarray(sheared_mask)
+
         #####################################
         # Generate name for resulting image #
         #####################################

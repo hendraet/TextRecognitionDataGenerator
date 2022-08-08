@@ -42,7 +42,7 @@ class GeneratorFromWikipedia:
             image_mode="RGB",
             output_bboxes=0,
             length=-1,
-            variance=0,
+            string_length_variance=0,
             font_dir=""
     ):
         self.generated_count = 0
@@ -56,7 +56,7 @@ class GeneratorFromWikipedia:
             length=length,
             count=self.batch_size,
             lang=self.language,
-            variance=variance,
+            variance=string_length_variance,
             min_length=self.minimum_length
         )
         self.generator = GeneratorFromStrings(
