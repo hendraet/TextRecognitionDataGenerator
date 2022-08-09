@@ -7,13 +7,14 @@ from trdg.generators import GeneratorFromStrings
 from trdg.utils import load_fonts
 
 
-class GeneratorFromStringsCustom(GeneratorFromStrings):  # TODO: maybe different name
+class GeneratorFromStringsCustom(GeneratorFromStrings):
 
     def __init__(
             self,
             *args,
             strings: Tuple[str],
             font_dir: Path = None,
+            inflation_factor: float = 1.,
             shearing_angle: Union[int, List[int]] = 0,
             space_width: Union[float, List[float]] = 1.0,
             character_spacing: int = 0,
@@ -22,7 +23,7 @@ class GeneratorFromStringsCustom(GeneratorFromStrings):  # TODO: maybe different
             word_pos_variance: Optional[Tuple[float, float]] = None,
             **kwargs
     ):
-        count = len(strings)
+        count = int(inflation_factor * len(strings))
         fonts = load_fonts(font_dir)
         self.shearing_angle = shearing_angle
         self.color = color

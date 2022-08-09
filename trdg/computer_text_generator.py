@@ -110,11 +110,12 @@ def _generate_horizontal_text(
         rnd.randint(min(stroke_c1[2], stroke_c2[2]), max(stroke_c1[2], stroke_c2[2])),
     )
 
-    mu = int(sum(word_pos_variance) / 2 * text_height)
-    sigma = int((max(word_pos_variance) - mu) / 3 * text_height) # over 99% of the values of normal distribution are within 3 standard deviations of the mean
     for i, p in enumerate(split_text):
         y_pos_shift = 0
         if word_pos_variance is not None:
+            mu = int(sum(word_pos_variance) / 2 * text_height)
+            # over 99% of the values of normal distribution are within 3 standard deviations of the mean
+            sigma = int((max(word_pos_variance) - mu) / 3 * text_height)
             y_pos_shift = int(rnd.normalvariate(mu=mu, sigma=sigma))
         txt_img_draw.text(
             (sum(piece_widths[0:i]) + i * character_spacing * int(not word_split), top_padding + y_pos_shift),
