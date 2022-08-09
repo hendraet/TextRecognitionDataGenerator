@@ -1,0 +1,23 @@
+string_file: /hw_ds/synthetic_handwriting/synth_lines_original/strings.txt
+language: en
+image_mode: L
+size: 64
+background_type: 1
+dataset_dir: /hw_ds/synthetic_handwriting/synth_lines/batch_01
+font_dir: handwriting
+inflation_factor: 2.0
+shearing_angle:
+  - -15
+  - 30
+space_width:
+  - 0.9
+  - 1.5
+character_spacing:
+  - -10
+  - 0
+color:
+  - '#000000'
+  - '#282828'
+word_pos_variance:
+  - -0.1
+  - 0.1

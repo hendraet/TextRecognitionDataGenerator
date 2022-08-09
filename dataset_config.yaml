@@ -1,0 +1,10 @@
+count: 500000
+language: en
+image_mode: L
+size: 64
+background_type: 1
+length: 8
+minimum_length: 4
+variance: 2
+font_dir: handwriting
+dataset_dir: /hw_ds/synthetic_handwriting/synth_lines_original/batch_07
